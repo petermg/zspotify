@@ -155,6 +155,7 @@ def client():
     else:
         search_text = input("Enter search: ")
         search(search_text)
+        client()
     wait()
 
 
@@ -194,9 +195,12 @@ def search(search_term):
     if len(albums) > 0:
         print("###  ALBUMS  ###")
         for album in albums:
-            print("%d, %s | %s" % (
+            #print("==>",album,"\n")
+            print("%d, (%s) %s [%s] | %s" % (
                 i,
+                re.search('(\d{4})', album['release_date']).group(1),
                 album["name"],
+                album["total_tracks"],
                 ",".join([artist["name"] for artist in album["artists"]]),
             ))
             i += 1
@@ -219,22 +223,26 @@ def search(search_term):
     if len(tracks) + len(albums) + len(playlists) == 0:
         print("NO RESULTS FOUND - EXITING...")
     else:
-        position = int(input("SELECT ITEM BY ID: "))
+        _position = (input("SELECT ITEM BY ID: "))
 
-        if position <= total_tracks:
-            track_id = tracks[position - 1]["id"]
-            download_track(track_id)
-        elif position <= total_albums + total_tracks:
-            download_album(albums[position - total_tracks - 1]["id"])
-        else:
-            playlist_choice = playlists[position -
-                                        total_tracks - total_albums - 1]
-            playlist_songs = get_playlist_songs(token, playlist_choice['id'])
-            for song in playlist_songs:
-                if song['track']['id'] is not None:
-                    download_track(song['track']['id'], sanitize_data(
-                        playlist_choice['name'].strip()) + "/")
-                    print("\n")
+        positions_list = [int(n) for n in _position.strip().split(" ")]
+        print("RESULTS ",positions_list)
+
+        for position in positions_list:
+            if position <= total_tracks:
+                track_id = tracks[position - 1]["id"]
+                download_track(track_id)
+            elif position <= total_albums + total_tracks:
+                download_album(albums[position - total_tracks - 1]["id"])
+            else:
+                playlist_choice = playlists[position -
+                                            total_tracks - total_albums - 1]
+                playlist_songs = get_playlist_songs(token, playlist_choice['id'])
+                for song in playlist_songs:
+                    if song['track']['id'] is not None:
+                        download_track(song['track']['id'], sanitize_data(
+                            playlist_choice['name'].strip()) + "/")
+                        print("\n")
 
 
 def get_song_info(song_id):
