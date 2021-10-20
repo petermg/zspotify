@@ -155,6 +155,7 @@ def client():
     else:
         search_text = input("Enter search: ")
         search(search_text)
+        client()
     wait()
 
 
@@ -166,7 +167,7 @@ def search(search_term):
     resp = requests.get(
         "https://api.spotify.com/v1/search",
         {
-            "limit": "10",
+            "limit": "20",
             "offset": "0",
             "q": search_term,
             "type": "track,album,playlist"
@@ -194,9 +195,12 @@ def search(search_term):
     if len(albums) > 0:
         print("###  ALBUMS  ###")
         for album in albums:
-            print("%d, %s | %s" % (
+            #print("==>",album,"\n")
+            print("%d, (%s) %s [%s] | %s" % (
                 i,
+                re.search('(\d{4})', album['release_date']).group(1),
                 album["name"],
+                album["total_tracks"],
                 ",".join([artist["name"] for artist in album["artists"]]),
             ))
             i += 1
@@ -219,22 +223,26 @@ def search(search_term):
     if len(tracks) + len(albums) + len(playlists) == 0:
         print("NO RESULTS FOUND - EXITING...")
     else:
-        position = int(input("SELECT ITEM BY ID: "))
+        _position = (input("SELECT ITEM BY ID: "))
 
-        if position <= total_tracks:
-            track_id = tracks[position - 1]["id"]
-            download_track(track_id)
-        elif position <= total_albums + total_tracks:
-            download_album(albums[position - total_tracks - 1]["id"])
-        else:
-            playlist_choice = playlists[position -
-                                        total_tracks - total_albums - 1]
-            playlist_songs = get_playlist_songs(token, playlist_choice['id'])
-            for song in playlist_songs:
-                if song['track']['id'] is not None:
-                    download_track(song['track']['id'], sanitize_data(
-                        playlist_choice['name'].strip()) + "/")
-                    print("\n")
+        positions_list = [int(n) for n in _position.strip().split(" ")]
+        print("RESULTS ",positions_list)
+
+        for position in positions_list:
+            if position <= total_tracks:
+                track_id = tracks[position - 1]["id"]
+                download_track(track_id)
+            elif position <= total_albums + total_tracks:
+                download_album(albums[position - total_tracks - 1]["id"])
+            else:
+                playlist_choice = playlists[position -
+                                            total_tracks - total_albums - 1]
+                playlist_songs = get_playlist_songs(token, playlist_choice['id'])
+                for song in playlist_songs:
+                    if song['track']['id'] is not None:
+                        download_track(song['track']['id'], sanitize_data(
+                            playlist_choice['name'].strip()) + "/")
+                        print("\n")
 
 
 def get_song_info(song_id):
@@ -387,7 +395,12 @@ def get_album_name(access_token, album_id):
     headers = {'Authorization': f'Bearer {access_token}'}
     resp = requests.get(
         f'https://api.spotify.com/v1/albums/{album_id}', headers=headers).json()
-    return resp['artists'][0]['name'], sanitize_data(resp['name'])
+    print("###   Album Name:", resp['name'], "###")
+    print("###   Album release_date:", resp['release_date'], "###")
+    print("###   Album total_tracks:", resp['total_tracks'], "###")
+    if m := re.search('(\d{4})', resp['release_date']):
+        return resp['artists'][0]['name'], m.group(1),sanitize_data(resp['name'])
+    else: return resp['artists'][0]['name'], resp['release_date'],sanitize_data(resp['name'])
 
 
 # Extra functions directly related to our saved tracks
@@ -468,10 +481,10 @@ def download_track(track_id_str: str, extra_paths=""):
 def download_album(album):
     """ Downloads songs from an album """
     token = SESSION.tokens().get("user-read-email")
-    artist, album_name = get_album_name(token, album)
+    artist, album_release_date, album_name = get_album_name(token, album)
     tracks = get_album_tracks(token, album)
     for track in tracks:
-        download_track(track['id'], artist + " - " + album_name + "/")
+        download_track(track['id'], artist + "/" + artist + " - " + album_release_date + " - " + album_name + "/")
         print("\n")
 
 

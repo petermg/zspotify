@@ -1,4 +1,6 @@
 # zspotify
+Fork of https://github.com/Footsiefat/zspotify
+
 Spotify song downloader without injecting into the windows client
 
 ```
@@ -29,7 +31,7 @@ Python packages:
 
 ## **Docker:**
 * docker run -it -v $(pwd)/docker/config:/config -v $(pwd)/docker/download:/download jsavargas/zspotify
-
+* docker-compose run --rm zspotify
 
 
 

@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+
+  zspotify:
+    image: jsavargas/zspotify
+    container_name: zspotify
+    restart: unless-stopped
+    network_mode: bridge
+    environment:
+      - 'PUID=99'
+      - 'PGID=100'
+      - 'TZ=America/Santiago'
+    volumes:
+      - /mnt/user/appdata/zspotify:/config
+      - /mnt/user/download:/download
+
