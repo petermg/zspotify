@@ -29,6 +29,8 @@ SKIP_EXISTING_FILES = True
 MUSIC_FORMAT = "mp3"  # or "ogg"
 FORCE_PREMIUM = False # set to True if not detecting your premium account automatically
 RAW_AUDIO_AS_IS = False # set to True if you wish you save the raw audio without re-encoding it.
+LIMIT = 50 
+
 
 # miscellaneous functions for general use
 
@@ -167,7 +169,7 @@ def search(search_term):
     resp = requests.get(
         "https://api.spotify.com/v1/search",
         {
-            "limit": "30",
+            "limit": LIMIT,
             "offset": "0",
             "q": search_term,
             "type": "track,album,playlist"
