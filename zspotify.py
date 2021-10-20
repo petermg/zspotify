@@ -166,7 +166,7 @@ def search(search_term):
     resp = requests.get(
         "https://api.spotify.com/v1/search",
         {
-            "limit": "10",
+            "limit": "20",
             "offset": "0",
             "q": search_term,
             "type": "track,album,playlist"
