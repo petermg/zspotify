@@ -3,7 +3,7 @@ version: '3'
 services:
 
   zspotify:
-    image: jsavargas/zspotify:develop
+    image: jsavargas/zspotify
     container_name: zspotify
     restart: unless-stopped
     network_mode: host
