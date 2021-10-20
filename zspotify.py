@@ -476,7 +476,7 @@ def download_album(album):
     artist, album_release_date, album_name = get_album_name(token, album)
     tracks = get_album_tracks(token, album)
     for track in tracks:
-        download_track(track['id'], artist + " - " + album_release_date + " - " + album_name + "/")
+        download_track(track['id'], artist + "/" + artist + " - " + album_release_date + " - " + album_name + "/")
         print("\n")
 
 
