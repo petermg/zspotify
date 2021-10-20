@@ -1,4 +1,6 @@
 # zspotify
+Fork of https://github.com/Footsiefat/zspotify
+
 Spotify song downloader without injecting into the windows client
 
 ```

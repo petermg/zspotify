@@ -387,7 +387,12 @@ def get_album_name(access_token, album_id):
     headers = {'Authorization': f'Bearer {access_token}'}
     resp = requests.get(
         f'https://api.spotify.com/v1/albums/{album_id}', headers=headers).json()
-    return resp['artists'][0]['name'], sanitize_data(resp['name'])
+    print("###   Album Name:", resp['name'], "###")
+    print("###   Album release_date:", resp['release_date'], "###")
+    print("###   Album total_tracks:", resp['total_tracks'], "###")
+    if m := re.search('(\d{4})', resp['release_date']):
+        return resp['artists'][0]['name'], m.group(1),sanitize_data(resp['name'])
+    else: return resp['artists'][0]['name'], resp['release_date'],sanitize_data(resp['name'])
 
 
 # Extra functions directly related to our saved tracks
@@ -468,10 +473,10 @@ def download_track(track_id_str: str, extra_paths=""):
 def download_album(album):
     """ Downloads songs from an album """
     token = SESSION.tokens().get("user-read-email")
-    artist, album_name = get_album_name(token, album)
+    artist, album_release_date, album_name = get_album_name(token, album)
     tracks = get_album_tracks(token, album)
     for track in tracks:
-        download_track(track['id'], artist + " - " + album_name + "/")
+        download_track(track['id'], artist + " - " + album_release_date + " - " + album_name + "/")
         print("\n")
 
 

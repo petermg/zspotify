@@ -143,3 +143,4 @@ credentials.json
 #Download Folder
 ZSpotify\ Music/
 docker-compose.yml
+docker-compose.yaml
