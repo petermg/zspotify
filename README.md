@@ -45,4 +45,6 @@ Python packages:
 - Added Shebang line so it runs smoother on Linux.
 - Made it download the entire track at once now so it is more efficent and fixed a bug users encountered.
 - Added docker support
+- Added range download example 1-10
+
 
