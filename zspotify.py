@@ -435,6 +435,7 @@ def download_track(track_id_str: str, extra_paths=""):
     global ROOT_PATH, SKIP_EXISTING_FILES, MUSIC_FORMAT, RAW_AUDIO_AS_IS
 
     track_id = TrackId.from_base62(track_id_str)
+    # TODO: ADD disc_number IF > 1 
     artists, album_name, name, image_url, release_year, disc_number, track_number, scraped_song_id, is_playable = get_song_info(
         track_id_str)
 
@@ -489,9 +490,16 @@ def download_album(album):
     artist, album_release_date, album_name = get_album_name(token, album)
     #print("artist:" , artist, "album_release_date:", album_release_date, "album_name:", album_name)
     tracks = get_album_tracks(token, album)
+    disc_number_flag = False
     for track in tracks:
-        #print(f"###   ID[{track['id']}] artist[{artist}] album_release_date[{album_release_date}] artist[{album_name}]")
-        download_track(track['id'], artist + "/" + artist + " - " + album_release_date + " - " + album_name + "/")
+        #print(f"###   artist[{artist}] release_date[{album_release_date}] album_name[{album_name}] disc_number[{track['disc_number']}]")
+        if track['disc_number'] > 1:
+            disc_number_flag = True
+
+    for track in tracks:
+        print(f"###   artist[{artist}] release_date[{album_release_date}] album_name[{album_name}] disc_number[{track['disc_number']}]")
+        if disc_number_flag: download_track(track['id'], artist + "/" + artist + " - " + album_release_date + " - " + album_name + "/CD " + str(track['disc_number']).zfill(2) + "/")
+        else: download_track(track['id'], artist + "/" + artist + " - " + album_release_date + " - " + album_name + "/")
         print("\n")
 
 
