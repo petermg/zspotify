@@ -282,7 +282,6 @@ def search(search_term):
                         download_album(album['id'])
                 print("\n")
 
-
 def get_song_info(song_id):
     """ Retrieves metadata for downloaded songs """
     token = SESSION.tokens().get("user-read-email")
@@ -535,6 +534,7 @@ def download_album(album):
         if disc_number_flag: download_track(track['id'], artist + "/" + artist + " - " + album_release_date + " - " + album_name + "/CD " + str(track['disc_number']).zfill(2) + "/")
         else: download_track(track['id'], artist + "/" + artist + " - " + album_release_date + " - " + album_name + "/")
         print("\n")
+
 
 def get_albums_artist(access_token, artists_id):
     """ returns list of albums in a artist """
