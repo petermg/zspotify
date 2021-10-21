@@ -543,10 +543,7 @@ def get_albums_artist(access_token, artists_id):
         f'https://api.spotify.com/v1/artists/{artists_id}/albums', headers=headers).json()
     #print("###   Album Name:", resp['items'], "###")
     return resp['items']
-    exit()
-    if m := re.search('(\d{4})', resp['release_date']):
-        return resp['artists'][0]['name'], m.group(1),sanitize_data(resp['name'])
-    else: return resp['artists'][0]['name'], resp['release_date'],sanitize_data(resp['name'])
+
 
 def download_from_user_playlist():
     """ Downloads songs from users playlist """
