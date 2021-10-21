@@ -31,6 +31,7 @@ FORCE_PREMIUM = False # set to True if not detecting your premium account automa
 RAW_AUDIO_AS_IS = False # set to True if you wish you save the raw audio without re-encoding it.
 LIMIT = 50 
 
+requests.adapters.DEFAULT_RETRIES = 10
 
 # miscellaneous functions for general use
 
@@ -191,7 +192,6 @@ def search(search_term):
             i += 1
         total_tracks = i - 1
         print("\n")
-        print("total_tracks",total_tracks)
     else:
         total_tracks = 0
 
@@ -210,7 +210,6 @@ def search(search_term):
             i += 1
         total_albums = i - total_tracks - 1
         print("\n")
-        print("total_albums",total_albums)
     else:
         total_albums = 0
 
@@ -226,7 +225,6 @@ def search(search_term):
         i += 1
     total_playlists = i - total_albums - total_tracks  - 1
     print("\n")
-    print("total_playlists",total_playlists)
 
     artists = resp.json()["artists"]["items"]
     total_artists = 0
@@ -277,8 +275,26 @@ def search(search_term):
                 #print("==> position: ", position ," total_albums + total_tracks + total_playlists: ", position - total_albums - total_tracks - total_playlists )
                 artists_choice = artists[position - total_albums - total_tracks - total_playlists - 1]
                 albums = get_albums_artist(token,artists_choice['id'])
+                i=0
                 for album in albums:
                     if artists_choice['id'] == album['artists'][0]['id']:
+                        i += 1
+                        year = re.search('(\d{4})', album['release_date']).group(1)
+                        print(f" {i} {album['artists'][0]['name']} - ({year}) {album['name']} [{album['total_tracks']}] [{album['type']}]")
+                total_albums_downloads = i
+                print("\n")
+
+                for i in range(8)[::-1]:
+                    print("\rWait for Download in %d second(s)..." % (i + 1), end="")
+                    time.sleep(1)
+                
+                print("\n")
+                i=0
+                for album in albums:
+                    if artists_choice['id'] == album['artists'][0]['id']:
+                        i += 1
+                        year = re.search('(\d{4})', album['release_date']).group(1)
+                        print(f"###   {i}/{total_albums_downloads} {album['artists'][0]['name']} - ({year}) {album['name']} [{album['total_tracks']}]")
                         download_album(album['id'])
                 print("\n")
 
@@ -467,54 +483,63 @@ def download_track(track_id_str: str, extra_paths=""):
     """ Downloads raw song audio from Spotify """
     global ROOT_PATH, SKIP_EXISTING_FILES, MUSIC_FORMAT, RAW_AUDIO_AS_IS
 
-    track_id = TrackId.from_base62(track_id_str)
-    # TODO: ADD disc_number IF > 1 
-    artists, album_name, name, image_url, release_year, disc_number, track_number, scraped_song_id, is_playable = get_song_info(
-        track_id_str)
+    try:
+        track_id = TrackId.from_base62(track_id_str)
+        # TODO: ADD disc_number IF > 1 
+        artists, album_name, name, image_url, release_year, disc_number, track_number, scraped_song_id, is_playable = get_song_info(
+            track_id_str)
 
-    song_name = artists[0] + " - " + album_name + " - " + str(track_number).zfill(2) + ". " + name
-    filename = ROOT_PATH + extra_paths + song_name + '.' + MUSIC_FORMAT
+        song_name = artists[0] + " - " + album_name + " - " + str(track_number).zfill(2) + ". " + name
+        filename = ROOT_PATH + extra_paths + song_name + '.' + MUSIC_FORMAT
 
-    if not is_playable:
-        print("###   SKIPPING:", song_name, "(SONG IS UNAVAILABLE)   ###")
+    except Exception as e:
+        print("###   SKIPPING SONG - FAILED TO QUERY METADATA   ###")
+        download_track(track_id_str, extra_paths) # TODO: RETRY 
+        
     else:
-        if os.path.isfile(filename) and SKIP_EXISTING_FILES:
-            print("###   SKIPPING:", song_name, "(SONG ALREADY EXISTS)   ###")
-        else:
-            if track_id_str != scraped_song_id:
-                print("###   APPLYING PATCH TO LET SONG DOWNLOAD   ###")
-                track_id_str = scraped_song_id
-                track_id = TrackId.from_base62(track_id_str)
 
-            print("###   FOUND SONG:", song_name, "   ###")
+        try:
 
-            try:
-                stream = SESSION.content_feeder().load(
-                    track_id, VorbisOnlyAudioQuality(QUALITY), False, None)
-            except:
-                print("###   SKIPPING:", song_name,
-                      "(GENERAL DOWNLOAD ERROR)   ###")
+            if not is_playable:
+                print("###   SKIPPING:", song_name, "(SONG IS UNAVAILABLE)   ###")
             else:
-                print("###   DOWNLOADING RAW AUDIO   ###")
+                if os.path.isfile(filename) and SKIP_EXISTING_FILES:
+                    print("###   SKIPPING:", song_name, "(SONG ALREADY EXISTS)   ###")
+                else:
+                    if track_id_str != scraped_song_id:
+                        print("###   APPLYING PATCH TO LET SONG DOWNLOAD   ###")
+                        track_id_str = scraped_song_id
+                        track_id = TrackId.from_base62(track_id_str)
 
-                if not os.path.isdir(ROOT_PATH + extra_paths):
-                    os.makedirs(ROOT_PATH + extra_paths)
+                    print("###   FOUND SONG:", song_name, "   ###")
 
-                with open(filename, 'wb') as file:
-                    # Try's to download the entire track at once now to be more efficient.
-                    byte = stream.input_stream.stream().read(-1)
-                    file.write(byte)
-                if not RAW_AUDIO_AS_IS:
                     try:
-                        convert_audio_format(filename)
+                        stream = SESSION.content_feeder().load(
+                            track_id, VorbisOnlyAudioQuality(QUALITY), False, None)
                     except:
-                        os.remove(filename)
-                        print("###   SKIPPING:", song_name,
-                            "(GENERAL CONVERSION ERROR)   ###")
+                        print("###   SKIPPING:", song_name, "(GENERAL DOWNLOAD ERROR)   ###")
                     else:
-                        set_audio_tags(filename, artists, name, album_name,
-                                    release_year, disc_number, track_number)
-                        set_music_thumbnail(filename, image_url)
+                        print("###   DOWNLOADING RAW AUDIO   ###")
+
+                        if not os.path.isdir(ROOT_PATH + extra_paths):
+                            os.makedirs(ROOT_PATH + extra_paths)
+
+                        with open(filename, 'wb') as file:
+                            # Try's to download the entire track at once now to be more efficient.
+                            byte = stream.input_stream.stream().read(-1)
+                            file.write(byte)
+                        if not RAW_AUDIO_AS_IS:
+                            try:
+                                convert_audio_format(filename)
+                            except:
+                                os.remove(filename)
+                                print("###   SKIPPING:", song_name, "(GENERAL CONVERSION ERROR)   ###")
+                            else:
+                                set_audio_tags(filename, artists, name, album_name,
+                                            release_year, disc_number, track_number)
+                                set_music_thumbnail(filename, image_url)
+        except:
+            print("###   SKIPPING:", song_name, "(GENERAL DOWNLOAD ERROR)   ###")
 
 
 def download_album(album):
@@ -538,9 +563,15 @@ def download_album(album):
 
 def get_albums_artist(access_token, artists_id):
     """ returns list of albums in a artist """
+
+    offset = 0
+    limit = 50
+
     headers = {'Authorization': f'Bearer {access_token}'}
+    params = {'limit': limit, 'offset': offset}
+
     resp = requests.get(
-        f'https://api.spotify.com/v1/artists/{artists_id}/albums', headers=headers).json()
+        f'https://api.spotify.com/v1/artists/{artists_id}/albums', headers=headers, params=params).json()
     #print("###   Album Name:", resp['items'], "###")
     return resp['items']
 
