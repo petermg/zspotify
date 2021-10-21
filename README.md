@@ -58,6 +58,8 @@ Special hardcoded options:
 - Added docker support
 - Added range download example 1-10 example: SELECT ITEM BY ID: 1-10
 - Added download all albums by artist
+- Subfolders for each disc
+- Naming tracks: "artist - album - track. name"
 
 **v1.6 (20 Oct 2021):**
 - Added Pillow to requirements.txt.
