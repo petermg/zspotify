@@ -8,34 +8,57 @@ Requirements:
 
 Binaries
 
-- Python 3.8 or greater
-- ffmpeg*
+    - Python 3.8 or greater
+    - ffmpeg*
 
 Python packages:
 
-- pip install -r requirements.txt
+    - pip install -r requirements.txt
 
 ```
 \*ffmpeg can be installed via apt for Debian-based distros or by downloading the binaries from [ffmpeg.org](https://ffmpeg.org) and placing them in your %PATH% in Windows.
 
-- Use "-p" or "--playlist" to download a saved playlist from your account
-- Use "-ls" or "--liked-songs" to download all the liked songs from your account
-- Supply the URL or ID of a Track/Album/Playlist as an argument to download it
-- Don't supply any arguments and it will give you a search input field to find and download a specific Track/Album/Playlist via the query.
 
-- Change the MUSIC_FORMAT variable in zspotify.py to "ogg" if you rather that over "mp3"
-- Change the FORCE_PREMIUM in zspotify.py to True if it is not automatically detecting your premium account.
-- Change the RAW_AUDIO_AS_IS in zspotify.py to True if you wish to only save the raw audio stream without any re-encoding.
+```
+Command line usage:
+  python zspotify.py                              Loads search prompt to find then download a specific track, album or playlist
 
-![image](https://user-images.githubusercontent.com/12180913/137978357-ee682c19-9a83-4820-82a1-7dad5230804c.png)
+Extra command line options:
+  -p, --playlist       Downloads a saved playlist from your account
+  -ls, --liked-songs   Downloads all the liked songs from your account
+
+Special hardcoded options:
+  ROOT_PATH           Change this path if you don't like the default directory where ZSpotify saves the music
+  ROOT_PODCAST_PATH   Change this path if you don't like the default directory where ZSpotify saves the podcasts
+
+  SKIP_EXISTING_FILES Set this to False if you want ZSpotify to overwrite files with the same name rather than skipping the song
+
+  MUSIC_FORMAT        Set this to "ogg" if you would rather that format audio over "mp3"
+  RAW_AUDIO_AS_IS     Set this to True to only stream the audio to a file and do no re-encoding or post processing
+  
+  FORCE_PREMIUM       Set this to True if ZSpotify isn't automatically detecting that you are using a premium account
+  
+```
+
+
 
 ## **Docker:**
-* docker run -it -v $(pwd)/docker/config:/config -v $(pwd)/docker/download:/download jsavargas/zspotify
-* docker-compose run --rm zspotify
+
+```
+  docker run -it -v $(pwd)/docker/config:/config -v $(pwd)/docker/download:/download jsavargas/zspotify
+  
+  docker-compose run --rm zspotify
+```
 
 
 
 ## **Changelog:**
+
+**v1.7 (21 Oct 2021):**
+- Added docker support
+- Added range download example 1-10 example: SELECT ITEM BY ID: 1-10
+- Added download all albums by artist
+
 **v1.6 (20 Oct 2021):**
 - Added Pillow to requirements.txt.
 - Removed websocket-client from requirements.txt because librespot-python added it to their dependency list.
@@ -44,8 +67,5 @@ Python packages:
 - Added option to just download the raw audio with no re-encoding at all.
 - Added Shebang line so it runs smoother on Linux.
 - Made it download the entire track at once now so it is more efficent and fixed a bug users encountered.
-- Added docker support
-- Added range download example 1-10
-- Added download all albums by artist
 
 
