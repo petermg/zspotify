@@ -29,7 +29,6 @@ Extra command line options:
 
 Special hardcoded options:
   ROOT_PATH           Change this path if you don't like the default directory where ZSpotify saves the music
-  ROOT_PODCAST_PATH   Change this path if you don't like the default directory where ZSpotify saves the podcasts
 
   SKIP_EXISTING_FILES Set this to False if you want ZSpotify to overwrite files with the same name rather than skipping the song
 
@@ -60,6 +59,7 @@ Special hardcoded options:
 - Added download all albums by artist
 - Subfolders for each disc
 - Naming tracks: "artist - album - track. name"
+- Setting Limit in 50 items
 
 **v1.6 (20 Oct 2021):**
 - Added Pillow to requirements.txt.
