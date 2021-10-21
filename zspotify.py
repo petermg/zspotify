@@ -172,10 +172,11 @@ def search(search_term):
             "limit": LIMIT,
             "offset": "0",
             "q": search_term,
-            "type": "track,album,playlist"
+            "type": "track,album,playlist,artist"
         },
         headers={"Authorization": "Bearer %s" % token},
     )
+    print("token: ",token)
 
     i = 1
     tracks = resp.json()["tracks"]["items"]
@@ -190,6 +191,7 @@ def search(search_term):
             i += 1
         total_tracks = i - 1
         print("\n")
+        print("total_tracks",total_tracks)
     else:
         total_tracks = 0
 
@@ -208,10 +210,12 @@ def search(search_term):
             i += 1
         total_albums = i - total_tracks - 1
         print("\n")
+        print("total_albums",total_albums)
     else:
         total_albums = 0
 
     playlists = resp.json()["playlists"]["items"]
+    total_playlists = 0
     print("###  PLAYLISTS  ###")
     for playlist in playlists:
         print("%d, %s | %s" % (
@@ -220,6 +224,22 @@ def search(search_term):
             playlist['owner']['display_name'],
         ))
         i += 1
+    total_playlists = i - total_albums - total_tracks  - 1
+    print("\n")
+    print("total_playlists",total_playlists)
+
+    artists = resp.json()["artists"]["items"]
+    total_artists = 0
+    print("###  ARTIST  ###")
+    for artist in artists:
+        #print("==> ",artist)
+        print("%d, %s | %s" % (
+            i,
+            artist["name"],
+            "/".join(artist["genres"]),
+        ))
+        i += 1
+    total_artists = i - total_albums - total_tracks - total_playlists - 1
     print("\n")
 
     if len(tracks) + len(albums) + len(playlists) == 0:
@@ -240,8 +260,10 @@ def search(search_term):
                 track_id = tracks[position - 1]["id"]
                 download_track(track_id)
             elif position <= total_albums + total_tracks:
+                #print("==>" , position , " total_albums + total_tracks ", total_albums + total_tracks )
                 download_album(albums[position - total_tracks - 1]["id"])
-            else:
+            elif position <= total_albums + total_tracks + total_playlists:
+                #print("==> position: ", position ," total_albums + total_tracks + total_playlists ", total_albums + total_tracks + total_playlists )
                 playlist_choice = playlists[position -
                                             total_tracks - total_albums - 1]
                 playlist_songs = get_playlist_songs(token, playlist_choice['id'])
@@ -250,6 +272,15 @@ def search(search_term):
                         download_track(song['track']['id'], sanitize_data(
                             playlist_choice['name'].strip()) + "/")
                         print("\n")
+            else:
+                #5eyTLELpc4Coe8oRTHkU3F
+                #print("==> position: ", position ," total_albums + total_tracks + total_playlists: ", position - total_albums - total_tracks - total_playlists )
+                artists_choice = artists[position - total_albums - total_tracks - total_playlists - 1]
+                albums = get_albums_artist(token,artists_choice['id'])
+                for album in albums:
+                    if artists_choice['id'] == album['artists'][0]['id']:
+                        download_album(album['id'])
+                print("\n")
 
 
 def get_song_info(song_id):
@@ -404,7 +435,8 @@ def get_album_name(access_token, album_id):
         f'https://api.spotify.com/v1/albums/{album_id}', headers=headers).json()
     print("###   Album Name:", resp['name'], "###")
     print("###   Album release_date:", resp['release_date'], "###")
-    print("###   Album total_tracks:", resp['total_tracks'], "###")
+    print("###   Album total_tracks:", resp['total_tracks'], "###\n")
+    
     if m := re.search('(\d{4})', resp['release_date']):
         return resp['artists'][0]['name'], m.group(1),sanitize_data(resp['name'])
     else: return resp['artists'][0]['name'], resp['release_date'],sanitize_data(resp['name'])
@@ -499,11 +531,22 @@ def download_album(album):
             disc_number_flag = True
 
     for track in tracks:
-        print(f"###   artist[{artist}] release_date[{album_release_date}] album_name[{album_name}] disc_number[{track['disc_number']}]")
+        #print(f"###   artist[{artist}] release_date[{album_release_date}] album_name[{album_name}] disc_number[{track['disc_number']}]\n")
         if disc_number_flag: download_track(track['id'], artist + "/" + artist + " - " + album_release_date + " - " + album_name + "/CD " + str(track['disc_number']).zfill(2) + "/")
         else: download_track(track['id'], artist + "/" + artist + " - " + album_release_date + " - " + album_name + "/")
         print("\n")
 
+def get_albums_artist(access_token, artists_id):
+    """ returns list of albums in a artist """
+    headers = {'Authorization': f'Bearer {access_token}'}
+    resp = requests.get(
+        f'https://api.spotify.com/v1/artists/{artists_id}/albums', headers=headers).json()
+    #print("###   Album Name:", resp['items'], "###")
+    return resp['items']
+    exit()
+    if m := re.search('(\d{4})', resp['release_date']):
+        return resp['artists'][0]['name'], m.group(1),sanitize_data(resp['name'])
+    else: return resp['artists'][0]['name'], resp['release_date'],sanitize_data(resp['name'])
 
 def download_from_user_playlist():
     """ Downloads songs from users playlist """
