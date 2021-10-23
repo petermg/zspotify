@@ -177,7 +177,7 @@ def search(search_term):
         },
         headers={"Authorization": "Bearer %s" % token},
     )
-    print("token: ",token)
+    #print("token: ",token)
 
     i = 1
     tracks = resp.json()["tracks"]["items"]
@@ -277,10 +277,10 @@ def search(search_term):
                 albums = get_albums_artist(token,artists_choice['id'])
                 i=0
                 for album in albums:
-                    if artists_choice['id'] == album['artists'][0]['id']:
+                    if artists_choice['id'] == album['artists'][0]['id'] and album['album_type'] != 'single':
                         i += 1
                         year = re.search('(\d{4})', album['release_date']).group(1)
-                        print(f" {i} {album['artists'][0]['name']} - ({year}) {album['name']} [{album['total_tracks']}] [{album['type']}]")
+                        print(f" {i} {album['artists'][0]['name']} - ({year}) {album['name']} [{album['total_tracks']}] [{album['album_type']}]")
                 total_albums_downloads = i
                 print("\n")
 
@@ -291,7 +291,7 @@ def search(search_term):
                 print("\n")
                 i=0
                 for album in albums:
-                    if artists_choice['id'] == album['artists'][0]['id']:
+                    if artists_choice['id'] == album['artists'][0]['id'] and album['album_type'] != 'single' :
                         i += 1
                         year = re.search('(\d{4})', album['release_date']).group(1)
                         print(f"###   {i}/{total_albums_downloads} {album['artists'][0]['name']} - ({year}) {album['name']} [{album['total_tracks']}]")
@@ -504,7 +504,7 @@ def download_track(track_id_str: str, extra_paths=""):
                 print("###   SKIPPING:", song_name, "(SONG IS UNAVAILABLE)   ###")
             else:
                 if os.path.isfile(filename) and SKIP_EXISTING_FILES:
-                    print("###   SKIPPING:", song_name, "(SONG ALREADY EXISTS)   ###")
+                    print("###   SKIPPING: (SONG ALREADY EXISTS) :", song_name, "   ###")
                 else:
                     if track_id_str != scraped_song_id:
                         print("###   APPLYING PATCH TO LET SONG DOWNLOAD   ###")
