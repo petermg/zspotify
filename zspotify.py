@@ -180,7 +180,10 @@ def client():
             for episode in get_show_episodes(token, show_id_str):
                 download_episode(episode)
         else:
-            search(search_text)
+            try:
+                search(search_text)
+            except:
+                client()
             client()
 
     # wait()
@@ -363,12 +366,7 @@ def search(search_term):
                 explicit = "[E]"
             else:
                 explicit = ""
-            print("%d, %s %s | %s" % (
-                i,
-                track["name"],
-                explicit,
-                ",".join([artist["name"] for artist in track["artists"]]),
-            ))
+            print(f"{i}, {track['name']} {explicit} | {','.join([artist['name'] for artist in track['artists']])}")
             i += 1
         total_tracks = i - 1
         print("\n")
@@ -380,13 +378,7 @@ def search(search_term):
         print("###  ALBUMS  ###")
         for album in albums:
             #print("==>",album,"\n")
-            print("%d, (%s) %s [%s] | %s" % (
-                i,
-                re.search('(\d{4})', album['release_date']).group(1),
-                album["name"],
-                album["total_tracks"],
-                ",".join([artist["name"] for artist in album["artists"]]),
-            ))
+            print(f"{i}, ({re.search('(\d{4})', album['release_date']).group(1)}) {album['name']} [{album['total_tracks']}] | {','.join([artist['name'] for artist in album['artists']])}" )
             i += 1
         total_albums = i - total_tracks - 1
         print("\n")
@@ -397,11 +389,7 @@ def search(search_term):
     total_playlists = 0
     print("###  PLAYLISTS  ###")
     for playlist in playlists:
-        print("%d, %s | %s" % (
-            i,
-            playlist["name"],
-            playlist['owner']['display_name'],
-        ))
+        print(f"{i}, {playlist['name']} | {playlist['owner']['display_name']}" )
         i += 1
     total_playlists = i - total_albums - total_tracks  - 1
     print("\n")
@@ -411,11 +399,7 @@ def search(search_term):
     print("###  ARTIST  ###")
     for artist in artists:
         #print("==> ",artist)
-        print("%d, %s | %s" % (
-            i,
-            artist["name"],
-            "/".join(artist["genres"]),
-        ))
+        print(f"{i}, {artist['name']} | {'/'.join(artist['genres'])}") 
         i += 1
     total_artists = i - total_albums - total_tracks - total_playlists - 1
     print("\n")
@@ -423,8 +407,12 @@ def search(search_term):
     if len(tracks) + len(albums) + len(playlists) == 0:
         print("NO RESULTS FOUND - EXITING...")
     else:
+
         selection = str(input("SELECT ITEM(S) BY ID: "))
         inputs = split_input(selection)
+        
+        if not selection: client()
+        
         for pos in inputs:
             position = int(pos)
             if position <= total_tracks:
@@ -468,7 +456,7 @@ def search(search_term):
                     if artists_choice['id'] == album['artists'][0]['id'] and album['album_type'] != 'single' :
                         i += 1
                         year = re.search('(\d{4})', album['release_date']).group(1)
-                        print(f"  {i}/{total_albums_downloads} {album['artists'][0]['name']} - ({year}) {album['name']} [{album['total_tracks']}]")
+                        print(f"{i}/{total_albums_downloads} {album['artists'][0]['name']} - ({year}) {album['name']} [{album['total_tracks']}]")
                         download_album(album['id'])
 
 def get_song_info(song_id):
@@ -739,10 +727,10 @@ def download_album(album):
     if disc_number_flag: 
         for n, track in tqdm(enumerate(tracks, start=1), unit_scale=True, unit='Song', total=len(tracks)):
             disc_number = str(track['disc_number']).zfill(2)
-            download_track(track['id'], os.path.join(artist, f'{artist} - {album_release_date} - {album_name}", f"CD {disc_number}'),prefix=True, prefix_value=str(n), disable_progressbar=True)
+            download_track(track['id'], os.path.join(artist, f"{artist} - {album_release_date} - {album_name}", f"CD {disc_number}"),prefix=True, prefix_value=str(n), disable_progressbar=True)
     else: 
         for n, track in tqdm(enumerate(tracks, start=1), unit_scale=True, unit='Song', total=len(tracks)):
-            download_track(track['id'],os.path.join(artist,f'{artist} - {album_release_date} - {album_name}'),prefix=True, prefix_value=str(n), disable_progressbar=True)
+            download_track(track['id'], os.path.join(artist, f"{artist} - {album_release_date} - {album_name}"),prefix=True, prefix_value=str(n), disable_progressbar=True)
 
 def download_artist_albums(artist):
     """ Downloads albums of an artist """
