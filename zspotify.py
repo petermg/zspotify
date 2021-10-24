@@ -378,7 +378,8 @@ def search(search_term):
         print("###  ALBUMS  ###")
         for album in albums:
             #print("==>",album,"\n")
-            print(f"{i}, ({re.search('(\d{4})', album['release_date']).group(1)}) {album['name']} [{album['total_tracks']}] | {','.join([artist['name'] for artist in album['artists']])}" )
+            _year = re.search('(\d{4})', album['release_date']).group(1)
+            print(f"{i}, ({_year}) {album['name']} [{album['total_tracks']}] | {','.join([artist['name'] for artist in album['artists']])}" )
             i += 1
         total_albums = i - total_tracks - 1
         print("\n")
