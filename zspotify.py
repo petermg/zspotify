@@ -12,6 +12,7 @@ import platform
 import re
 import sys
 import time
+import shutil
 from getpass import getpass
 
 import music_tag
@@ -21,6 +22,7 @@ from librespot.core import Session
 from librespot.metadata import TrackId, EpisodeId
 from pydub import AudioSegment
 from tqdm import tqdm
+
 
 SESSION: Session = None
 sanitize = ["\\", "/", ":", "*", "?", "'", "<", ">", '"']
@@ -91,6 +93,9 @@ def login():
     """ Authenticates with Spotify and saves credentials to a file """
     global SESSION
 
+    if os.path.isfile("/config/credentials.json"):
+        shutil.copyfile('/config/credentials.json', 'credentials.json')
+
     if os.path.isfile("credentials.json"):
         try:
             SESSION = Session.Builder().stored_file().create()
@@ -102,6 +107,7 @@ def login():
         password = getpass()
         try:
             SESSION = Session.Builder().user_pass(user_name, password).create()
+            shutil.copyfile('credentials.json','/config/credentials.json')
             return
         except RuntimeError:
             pass
@@ -438,7 +444,10 @@ def search(search_term):
                 artists_choice = artists[position - total_albums - total_tracks - total_playlists - 1]
                 albums = get_albums_artist(token,artists_choice['id'])
                 i=0
+
                 print("\n")
+                print("ALL ALBUMS: ",len(albums)," IN:",str(set(album['album_type'] for album in albums)))
+                
                 for album in albums:
                     if artists_choice['id'] == album['artists'][0]['id'] and album['album_type'] != 'single':
                         i += 1
@@ -447,6 +456,9 @@ def search(search_term):
                 total_albums_downloads = i
                 print("\n")
 
+                #print('\n'.join([f"{album['name']} - [{album['album_type']}] | {'/'.join([artist['name'] for artist in album['artists']])} " for album in sorted(albums, key=lambda k: k['album_type'], reverse=True)]))
+
+                
                 for i in range(8)[::-1]:
                     print("\rWait for Download in %d second(s)..." % (i + 1), end="")
                     time.sleep(1)
@@ -457,7 +469,7 @@ def search(search_term):
                     if artists_choice['id'] == album['artists'][0]['id'] and album['album_type'] != 'single' :
                         i += 1
                         year = re.search('(\d{4})', album['release_date']).group(1)
-                        print(f"{i}/{total_albums_downloads} {album['artists'][0]['name']} - ({year}) {album['name']} [{album['total_tracks']}]")
+                        print(f"\n{i}/{total_albums_downloads} {album['artists'][0]['name']} - ({year}) {album['name']} [{album['total_tracks']}]")
                         download_album(album['id'])
 
 def get_song_info(song_id):
@@ -663,6 +675,8 @@ def download_track(track_id_str: str, extra_paths="", prefix=False, prefix_value
 
     except Exception as e:
         print("###   SKIPPING SONG - FAILED TO QUERY METADATA   ###")
+        print(track_id_str, extra_paths,prefix, prefix_value, disable_progressbar)
+        time.sleep(10)
         download_track(track_id_str, extra_paths,prefix=prefix, prefix_value=prefix_value, disable_progressbar=disable_progressbar)
 
     else:
@@ -709,10 +723,10 @@ def download_track(track_id_str: str, extra_paths="", prefix=False, prefix_value
                     if not OVERRIDE_AUTO_WAIT:
                         time.sleep(ANTI_BAN_WAIT_TIME)
         except:
-            print("###   SKIPPING:", song_name,
-                  "(GENERAL DOWNLOAD ERROR)   ###")
+            print("###   SKIPPING:", song_name, "(GENERAL DOWNLOAD ERROR)   ###")
             if os.path.exists(filename):
                 os.remove(filename)
+            download_track(track_id_str, extra_paths,prefix=prefix, prefix_value=prefix_value, disable_progressbar=disable_progressbar)
 
 
 def download_album(album):
