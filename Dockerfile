@@ -1,4 +1,6 @@
-FROM jsavargas/zspotify:develop as base
+#  FROM python:3.9-alpine as base
+
+FROM jsavargas/zspotify as base
 
 RUN apk --update add git ffmpeg
 
@@ -8,7 +10,7 @@ WORKDIR /install
 
 COPY requirements.txt /requirements.txt
 RUN apk add gcc libc-dev zlib zlib-dev jpeg-dev \
-    && pip install --prefix="/install" -r /requirements.txt
+    && /usr/local/bin/python -m pip install --upgrade pip && pip install --prefix="/install" -r /requirements.txt
 
 
 FROM base
