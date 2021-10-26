@@ -1,4 +1,4 @@
-FROM python:3.9-alpine as base
+FROM jsavargas/zspotify:develop as base
 
 RUN apk --update add git ffmpeg
 
@@ -12,7 +12,7 @@ RUN apk add gcc libc-dev zlib zlib-dev jpeg-dev \
 
 
 FROM base
-	
+
 WORKDIR /app
 COPY --from=builder /install /usr/local
 
