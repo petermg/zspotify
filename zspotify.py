@@ -34,7 +34,8 @@ MUSIC_FORMAT = "mp3"  # or "ogg"
 FORCE_PREMIUM = False # set to True if not detecting your premium account automatically
 RAW_AUDIO_AS_IS = False # set to True if you wish you save the raw audio without re-encoding it.
 # This is how many seconds ZSpotify waits between downloading tracks so spotify doesn't get out the ban hammer
-ANTI_BAN_WAIT_TIME = 1
+ANTI_BAN_WAIT_TIME = 5
+ANTI_BAN_WAIT_TIME_ALBUMS = 30
 # Set this to True to not wait at all between tracks and just go balls to the wall
 OVERRIDE_AUTO_WAIT = False
 CHUNK_SIZE = 50000
@@ -326,8 +327,8 @@ def download_episode(episode_id_str):
         # print("###  DOWNLOADING '" + podcast_name + " - " +
         #      episode_name + "' - THIS MAY TAKE A WHILE ###")
 
-        if not os.path.isdir(ROOT_PODCAST_PATH + extra_paths):
-            os.makedirs(ROOT_PODCAST_PATH + extra_paths)
+        #if not os.path.isdir(ROOT_PODCAST_PATH + extra_paths):
+        os.makedirs(ROOT_PODCAST_PATH + extra_paths,exist_ok=True)
 
         total_size = stream.input_stream.size
         with open(ROOT_PODCAST_PATH + extra_paths + filename + ".wav", 'wb') as file, tqdm(
@@ -469,30 +470,37 @@ def search(search_term):
                     if artists_choice['id'] == album['artists'][0]['id'] and album['album_type'] != 'single' :
                         i += 1
                         year = re.search('(\d{4})', album['release_date']).group(1)
-                        print(f"\n{i}/{total_albums_downloads} {album['artists'][0]['name']} - ({year}) {album['name']} [{album['total_tracks']}]")
+                        print(f"\n\n\n{i}/{total_albums_downloads} {album['artists'][0]['name']} - ({year}) {album['name']} [{album['total_tracks']}]")
                         download_album(album['id'])
+                        for i in range(ANTI_BAN_WAIT_TIME_ALBUMS)[::-1]:
+                            print("\rWait for Next Download in %d second(s)..." % (i + 1), end="")
+                            time.sleep(1)
 
 def get_song_info(song_id):
     """ Retrieves metadata for downloaded songs """
     token = SESSION.tokens().get("user-read-email")
+    try:
 
-    info = json.loads(requests.get("https://api.spotify.com/v1/tracks?ids=" + song_id +
-                      '&market=from_token', headers={"Authorization": "Bearer %s" % token}).text)
+        info = json.loads(requests.get("https://api.spotify.com/v1/tracks?ids=" + song_id +
+                        '&market=from_token', headers={"Authorization": "Bearer %s" % token}).text)
 
-    artists = []
-    for data in info['tracks'][0]['artists']:
-        artists.append(sanitize_data(data['name']))
-    album_name = sanitize_data(info['tracks'][0]['album']["name"])
-    name = sanitize_data(info['tracks'][0]['name'])
-    image_url = info['tracks'][0]['album']['images'][0]['url']
-    release_year = info['tracks'][0]['album']['release_date'].split("-")[0]
-    disc_number = info['tracks'][0]['disc_number']
-    track_number = info['tracks'][0]['track_number']
-    scraped_song_id = info['tracks'][0]['id']
-    is_playable = info['tracks'][0]['is_playable']
+        artists = []
+        for data in info['tracks'][0]['artists']:
+            artists.append(sanitize_data(data['name']))
+        album_name = sanitize_data(info['tracks'][0]['album']["name"])
+        name = sanitize_data(info['tracks'][0]['name'])
+        image_url = info['tracks'][0]['album']['images'][0]['url']
+        release_year = info['tracks'][0]['album']['release_date'].split("-")[0]
+        disc_number = info['tracks'][0]['disc_number']
+        track_number = info['tracks'][0]['track_number']
+        scraped_song_id = info['tracks'][0]['id']
+        is_playable = info['tracks'][0]['is_playable']
 
-    return artists, album_name, name, image_url, release_year, disc_number, track_number, scraped_song_id, is_playable
-
+        return artists, album_name, name, image_url, release_year, disc_number, track_number, scraped_song_id, is_playable
+    except Exception as e:
+        print("###   get_song_info - FAILED TO QUERY METADATA   ###")
+        print(e)
+        print(song_id,info)
 
 def check_premium():
     """ If user has spotify premium return true """
@@ -670,14 +678,21 @@ def download_track(track_id_str: str, extra_paths="", prefix=False, prefix_value
             track_id_str)
 
         _artist = artists[0]
-        _track_number = str(track_number).zfill(2)
-        song_name = f'{_artist} - {album_name} - {_track_number}. {name}.{MUSIC_FORMAT}' 
-        filename = os.path.join(ROOT_PATH, extra_paths, song_name)
+        if prefix:
+            _track_number = str(track_number).zfill(2)
+            song_name = f'{_artist} - {album_name} - {_track_number}. {name}.{MUSIC_FORMAT}' 
+            filename = os.path.join(ROOT_PATH, extra_paths, song_name)
+        else:
+            song_name = f'{_artist} - {album_name} - {name}.{MUSIC_FORMAT}' 
+            filename = os.path.join(ROOT_PATH, extra_paths, song_name)
+
 
     except Exception as e:
         print("###   SKIPPING SONG - FAILED TO QUERY METADATA   ###")
-        print(track_id_str, extra_paths,prefix, prefix_value, disable_progressbar)
-        time.sleep(10)
+        print(f" download_track FAILED: [{track_id_str}][{extra_paths}][{prefix}][{prefix_value}][{disable_progressbar}]")
+        print("SKIPPING SONG: ",e)
+        print(f" download_track FAILED: [{artists}][{album_name}][{name}][{image_url}][{release_year}][{disc_number}][{track_number}][{scraped_song_id}][{is_playable}]")
+        time.sleep(60)
         download_track(track_id_str, extra_paths,prefix=prefix, prefix_value=prefix_value, disable_progressbar=disable_progressbar)
 
     else:
@@ -699,8 +714,8 @@ def download_track(track_id_str: str, extra_paths="", prefix=False, prefix_value
                         track_id, VorbisOnlyAudioQuality(QUALITY), False, None)
                     # print("###   DOWNLOADING RAW AUDIO   ###")
 
-                    if not os.path.isdir(ROOT_PATH + extra_paths):
-                        os.makedirs(ROOT_PATH + extra_paths)
+                    #if not os.path.isdir(ROOT_PATH + extra_paths):
+                    os.makedirs(ROOT_PATH + extra_paths,exist_ok=True)
 
                     total_size = stream.input_stream.size
                     with open(filename, 'wb') as file, tqdm(
@@ -727,6 +742,7 @@ def download_track(track_id_str: str, extra_paths="", prefix=False, prefix_value
             print("###   SKIPPING:", song_name, "(GENERAL DOWNLOAD ERROR)   ###")
             if os.path.exists(filename):
                 os.remove(filename)
+            print(f" download_track GENERAL DOWNLOAD ERROR: [{track_id_str}][{extra_paths}][{prefix}][{prefix_value}][{disable_progressbar}]")
             download_track(track_id_str, extra_paths,prefix=prefix, prefix_value=prefix_value, disable_progressbar=disable_progressbar)
 
 

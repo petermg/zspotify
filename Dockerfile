@@ -1,3 +1,5 @@
+#  FROM python:3.9-alpine as base
+
 FROM jsavargas/zspotify as base
 
 RUN apk --update add git ffmpeg
