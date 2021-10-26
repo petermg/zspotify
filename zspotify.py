@@ -599,10 +599,11 @@ def get_album_tracks(access_token, album_id):
     songs = []
     offset = 0
     limit = 50
+    include_groups = 'album,compilation'
 
     while True:
         headers = {'Authorization': f'Bearer {access_token}'}
-        params = {'limit': limit, 'offset': offset}
+        params = {'limit': limit, 'include_groups':include_groups, 'offset': offset}
         resp = requests.get(
             f'https://api.spotify.com/v1/albums/{album_id}/tracks', headers=headers, params=params).json()
         offset += limit
@@ -759,9 +760,10 @@ def get_albums_artist(access_token, artists_id):
 
     offset = 0
     limit = 50
+    include_groups = 'album,compilation'
 
     headers = {'Authorization': f'Bearer {access_token}'}
-    params = {'limit': limit, 'offset': offset}
+    params = {'limit': limit, 'include_groups': include_groups, 'offset': offset}
 
     resp = requests.get(
         f'https://api.spotify.com/v1/artists/{artists_id}/albums', headers=headers, params=params).json()
