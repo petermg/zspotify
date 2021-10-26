@@ -49,16 +49,26 @@ Special hardcoded options:
   docker-compose run --rm zspotify
 ```
 
+### docker compose ###
+![docker](images/docker-compose.png)
 
 
 ## **Changelog:**
+
+**v1.8 (23 Oct 2021):**
+- exclude album_type single
+- Added progress bar for downloads.
+- Changed welcome banner and removed unnecessary debug print statements.
+- Show single progress bar for entire album.
+- Added a small delay between downloading each track when downloading in bulk to help with downloading issues and potential bans.
+
 
 **v1.7 (21 Oct 2021):**
 - Added docker support
 - Added range download example 1-10 example: SELECT ITEM BY ID: 1-10
 - Added download all albums by artist
-- Subfolders for each disc
-- Naming tracks: "artist - album - track. name"
+- Added subfolders for each disc
+- Naming tracks: "artist - album - track-number. name"
 - Setting Limit in 50 items
 
 **v1.6 (20 Oct 2021):**
