@@ -18,9 +18,9 @@ FROM base
 WORKDIR /app
 COPY --from=builder /install /usr/local
 
-COPY zspotify.py /app
+COPY zspotify /app
 
 VOLUME /download /config
 
-ENTRYPOINT ["/usr/local/bin/python3", "zspotify.py"]
+ENTRYPOINT ["/usr/local/bin/python3", "__main__.py"]
 

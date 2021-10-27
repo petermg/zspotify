@@ -144,3 +144,7 @@ credentials.json
 ZSpotify\ Music/
 docker-compose.yml
 docker-compose.yaml
+
+#bak
+*.bak
+
