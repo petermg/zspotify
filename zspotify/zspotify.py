@@ -9,6 +9,8 @@ It's like youtube-dl, but for Spotify.
 import json
 import os
 import os.path
+import shutil
+
 from getpass import getpass
 from typing import Any
 
@@ -16,7 +18,7 @@ import requests
 from librespot.audio.decoders import VorbisOnlyAudioQuality
 from librespot.core import Session
 
-from const import CREDENTIALS_JSON, TYPE, \
+from const import CREDENTIALS_JSON, _CREDENTIALS_PATH, TYPE, \
     PREMIUM, USER_READ_EMAIL, AUTHORIZATION, OFFSET, LIMIT, CONFIG_FILE_PATH, FORCE_PREMIUM, \
     PLAYLIST_READ_PRIVATE, CONFIG_DEFAULT_SETTINGS
 from utils import MusicFormat
@@ -35,7 +37,8 @@ class ZSpotify:
     def login(cls):
         """ Authenticates with Spotify and saves credentials to a file """
 
-        if os.path.isfile(CREDENTIALS_JSON):
+        if os.path.isfile(_CREDENTIALS_PATH):
+            shutil.copyfile(_CREDENTIALS_PATH, CREDENTIALS_JSON)
             try:
                 cls.SESSION = Session.Builder().stored_file().create()
                 return

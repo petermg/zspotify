@@ -10,7 +10,9 @@ services:
     environment:
       - 'PUID=99'
       - 'PGID=100'
-      - 'TZ=America/Santiago'
+      - ANTI_BAN_WAIT_TIME=5
+      - ANTI_BAN_WAIT_TIME_ALBUMS=10
+      - TZ=America/Santiago'
     volumes:
       - /mnt/user/appdata/zspotify:/config
       - /mnt/user/download:/download

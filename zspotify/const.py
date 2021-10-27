@@ -119,6 +119,7 @@ SEARCH_LIMIT = 'SEARCH_LIMIT'
 
 _ROOT_PATH = "/download/ZSpotify Music/"
 _ROOT_PODCAST_PATH = "/download/ZSpotify Podcasts/"
+_CREDENTIALS_PATH = "/config/credentials.json"
 
 CONFIG_DEFAULT_SETTINGS = {
     'ROOT_PATH': get_env('ROOT_PATH', _ROOT_PATH),
