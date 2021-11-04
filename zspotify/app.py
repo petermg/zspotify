@@ -96,7 +96,7 @@ def client(args) -> None:
 
 def search(search_term):
     """ Searches Spotify's API for relevant data """
-    params = {'limit': '10',
+    params = {'limit': '30',
               'offset': '0',
               'q': search_term,
               'type': 'track,album,artist,playlist'}
@@ -212,7 +212,7 @@ def search(search_term):
             print('###  ARTISTS  ###')
             artist_data = []
             for artist in artists:
-                artist_data.append([counter, artist[NAME]])
+                artist_data.append([counter, artist[NAME],'/'.join(artist['genres'])[:30]])
                 dics.append({
                     ID: artist[ID],
                     NAME: artist[NAME],
@@ -221,7 +221,7 @@ def search(search_term):
                 counter += 1
             total_artists = counter - total_tracks - total_albums - 1
             print(tabulate(artist_data, headers=[
-                  'S.NO', 'Name'], tablefmt='pretty'))
+                  'S.NO', 'Name', 'GENRES'], tablefmt='pretty'))
             print('\n')
             del artists
             del artist_data

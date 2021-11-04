@@ -85,7 +85,7 @@ def download_track(track_id: str, extra_paths='', prefix=False, prefix_value='',
 
         song_name = fix_filename(artists[0]) + ' - ' + fix_filename(name)
         if prefix:
-            song_name = f'{prefix_value.zfill(2)} - {song_name}' if prefix_value.isdigit(
+            song_name = f'{artists[0]} - {album_name} - {prefix_value.zfill(2)} - {song_name}' if prefix_value.isdigit(
             ) else f'{prefix_value} - {song_name}'
 
         filename = os.path.join(

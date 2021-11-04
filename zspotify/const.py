@@ -6,11 +6,15 @@ TRACK_STATS_URL = 'https://api.spotify.com/v1/audio-features/'
 
 TRACKNUMBER = 'tracknumber'
 
+TOTAL_TRACKS = 'total_tracks'
+
 DISCNUMBER = 'discnumber'
 
 YEAR = 'year'
 
 ALBUM = 'album'
+
+ALBUM_TYPE = 'album_type'
 
 TRACKTITLE = 'tracktitle'
 
@@ -27,6 +31,8 @@ TRACK = 'track'
 ITEMS = 'items'
 
 NAME = 'name'
+
+GENRES = 'genres'
 
 ID = 'id'
 

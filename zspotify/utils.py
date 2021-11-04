@@ -74,7 +74,7 @@ def split_input(selection) -> List[str]:
         for number in range(int(selection.split('-')[0]), int(selection.split('-')[1]) + 1):
             inputs.append(number)
     else:
-        selections = selection.split(',')
+        selections = selection.split(' ')
         for i in selections:
             inputs.append(i.strip())
     return inputs
