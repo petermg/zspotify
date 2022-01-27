@@ -49,9 +49,6 @@ Special hardcoded options:
   docker-compose run --rm zspotify
 ```
 
-### docker compose ###
-![docker](images/docker-compose.png)
-
 
 ## **Changelog:**
 
